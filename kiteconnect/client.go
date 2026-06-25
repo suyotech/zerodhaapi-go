@@ -55,3 +55,7 @@ func WithBaseURL(baseURL string) Option {
 func (c *Client) SetAccessToken(accessToken string) {
 	c.accessToken = accessToken
 }
+
+func (c *Client) AccessToken() string {
+	return c.accessToken
+}

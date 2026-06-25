@@ -46,7 +46,7 @@ func TestGenerateSessionSetsAccessToken(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if session.AccessToken != "access" || client.accessToken != "access" {
+	if session.AccessToken != "access" || client.AccessToken() != "access" {
 		t.Fatalf("access token was not set: %#v", session)
 	}
 }

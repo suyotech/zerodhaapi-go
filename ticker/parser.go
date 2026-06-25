@@ -4,7 +4,7 @@ import "encoding/binary"
 
 type Tick struct {
 	InstrumentToken uint32
-	Mode            string
+	Mode            Mode
 	LastPrice       float64
 	LastQuantity    uint32
 	AveragePrice    float64

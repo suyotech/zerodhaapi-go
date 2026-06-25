@@ -5,14 +5,14 @@ Small Go SDK for Zerodha Kite Connect v3.
 Packages:
 
 - `kiteconnect`: REST API client.
-- `ticker`: WebSocket endpoint/message helpers and binary tick parser.
+- `ticker`: WebSocket ticker client and binary tick parser.
 - `instruments`: instrument CSV cache and lookup helpers.
 
 ## Structure
 
 ```text
 kiteconnect/    REST API client
-ticker/         WebSocket helpers and tick parser
+ticker/         WebSocket ticker client and tick parser
 instruments/    instrument dump cache and lookup
 examples/       small runnable examples
 ```
@@ -60,10 +60,16 @@ candles, err := client.HistoricalData(ctx, kiteconnect.HistoricalDataParams{
 
 ```go
 t := ticker.NewClient("api_key", session.AccessToken)
-endpoint := t.Endpoint()
-subscribeMessage := ticker.Subscribe(408065)
-ticks, err := ticker.Parse(binaryPayload)
+t.OnTick(func(ticks []ticker.Tick) {
+    for _, tick := range ticks {
+        fmt.Println(tick.InstrumentToken, tick.LastPrice)
+    }
+})
+t.Subscribe(ticker.ModeFull, 408065)
+err := t.Connect(ctx)
 ```
+
+Available ticker modes are `ticker.ModeLTP`, `ticker.ModeQuote`, and `ticker.ModeFull`.
 
 ## Instruments
 
