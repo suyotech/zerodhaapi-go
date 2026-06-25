@@ -10,12 +10,12 @@ import (
 )
 
 type HistoricalDataParams struct {
-	InstrumentToken uint32
-	Interval        string
-	From            time.Time
-	To              time.Time
-	Continuous      bool
-	OI              bool
+	InstrumentToken uint32    // Example: 408065.
+	Interval        string    // Example: IntervalMinute, IntervalDay, Interval5Minute.
+	From            time.Time // Example: time.Now().AddDate(0, 0, -5).
+	To              time.Time // Example: time.Now().
+	Continuous      bool      // true for continuous futures data where supported.
+	OI              bool      // true to include open interest where supported.
 }
 
 type HistoricalCandle struct {

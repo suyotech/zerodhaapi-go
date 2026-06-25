@@ -8,18 +8,18 @@ import (
 )
 
 type AlertParams struct {
-	Name             string
-	Type             string
-	LHSExchange      string
-	LHSTradingSymbol string
-	LHSAttribute     string
-	Operator         string
-	RHSType          string
-	RHSConstant      float64
-	RHSExchange      string
-	RHSTradingSymbol string
-	RHSAttribute     string
-	Basket           string
+	Name             string  // Example: "INFY price alert".
+	Type             string  // Example: "simple".
+	LHSExchange      string  // Example: ExchangeNSE.
+	LHSTradingSymbol string  // Example: "INFY".
+	LHSAttribute     string  // Example: "LastTradedPrice".
+	Operator         string  // Example: ">=", "<=", "==".
+	RHSType          string  // Example: "constant", "instrument".
+	RHSConstant      float64 // Example: 1500.50 when RHSType is constant.
+	RHSExchange      string  // Example: ExchangeNSE when RHSType is instrument.
+	RHSTradingSymbol string  // Example: "TCS" when RHSType is instrument.
+	RHSAttribute     string  // Example: "LastTradedPrice".
+	Basket           string  // Optional basket JSON when creating basket alerts.
 }
 
 type Alert struct {

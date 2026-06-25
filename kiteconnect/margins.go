@@ -8,15 +8,15 @@ import (
 )
 
 type MarginOrder struct {
-	Exchange        string  `json:"exchange"`
-	TradingSymbol   string  `json:"tradingsymbol"`
-	TransactionType string  `json:"transaction_type"`
-	Variety         string  `json:"variety,omitempty"`
-	Product         string  `json:"product"`
-	OrderType       string  `json:"order_type"`
-	Quantity        int     `json:"quantity"`
-	Price           float64 `json:"price,omitempty"`
-	TriggerPrice    float64 `json:"trigger_price,omitempty"`
+	Exchange        string  `json:"exchange"`                // Example: ExchangeNSE, ExchangeNFO.
+	TradingSymbol   string  `json:"tradingsymbol"`           // Example: "INFY".
+	TransactionType string  `json:"transaction_type"`        // Example: TransactionBuy, TransactionSell.
+	Variety         string  `json:"variety,omitempty"`       // Example: VarietyRegular.
+	Product         string  `json:"product"`                 // Example: ProductMIS, ProductNRML.
+	OrderType       string  `json:"order_type"`              // Example: OrderTypeMarket, OrderTypeLimit.
+	Quantity        int     `json:"quantity"`                // Example: 1.
+	Price           float64 `json:"price,omitempty"`         // Example: 1525.50 for limit orders.
+	TriggerPrice    float64 `json:"trigger_price,omitempty"` // Example: 1520.00 for SL/SL-M orders.
 }
 
 type OrderMargin struct {

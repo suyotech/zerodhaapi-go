@@ -9,20 +9,20 @@ import (
 )
 
 type GTTParams struct {
-	Type          string
-	Exchange      string
-	TradingSymbol string
-	TriggerValues []float64
-	LastPrice     float64
-	Orders        []GTTOrder
+	Type          string     // Example: GTTTypeSingle, GTTTypeOCO.
+	Exchange      string     // Example: ExchangeNSE, ExchangeNFO.
+	TradingSymbol string     // Example: "INFY".
+	TriggerValues []float64  // Example: []float64{1500}; use two values for GTTTypeOCO.
+	LastPrice     float64    // Current last traded price.
+	Orders        []GTTOrder // Order legs to place when trigger is hit.
 }
 
 type GTTOrder struct {
-	TransactionType string  `json:"transaction_type"`
-	Quantity        int     `json:"quantity"`
-	OrderType       string  `json:"order_type"`
-	Product         string  `json:"product"`
-	Price           float64 `json:"price"`
+	TransactionType string  `json:"transaction_type"` // Example: TransactionBuy, TransactionSell.
+	Quantity        int     `json:"quantity"`         // Example: 1.
+	OrderType       string  `json:"order_type"`       // Example: OrderTypeLimit.
+	Product         string  `json:"product"`          // Example: ProductCNC, ProductNRML.
+	Price           float64 `json:"price"`            // Example: 1500.50.
 }
 
 type GTT struct {

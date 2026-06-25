@@ -77,15 +77,15 @@ type Instrument struct {
 }
 
 type FindRequest struct {
-	InstrumentToken *uint32
-	ExchangeToken   *uint32
-	Name            *string
-	TradingSymbol   *string
-	InstrumentType  *string
-	Strike          *float64
-	Expiry          *time.Time
-	Segment         *string
-	Exchange        *string
+	InstrumentToken *uint32    // Example: token := uint32(408065); InstrumentToken: &token.
+	ExchangeToken   *uint32    // Example: exchangeToken := uint32(1594); ExchangeToken: &exchangeToken.
+	Name            *string    // Example: name := "NIFTY"; Name: &name.
+	TradingSymbol   *string    // Example: symbol := "INFY"; TradingSymbol: &symbol.
+	InstrumentType  *string    // Example: t := InstrumentTypeCE; InstrumentType: &t.
+	Strike          *float64   // Example: strike := 24200.0; Strike: &strike.
+	Expiry          *time.Time // Example: expiry := time.Date(2026, 6, 25, 0, 0, 0, 0, time.UTC); Expiry: &expiry.
+	Segment         *string    // Example: segment := SegmentNFOOPT; Segment: &segment.
+	Exchange        *string    // Example: exchange := ExchangeNFO; Exchange: &exchange.
 }
 
 func CheckDownload(ctx context.Context, client *kiteconnect.Client, filePath string) error {

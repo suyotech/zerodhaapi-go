@@ -8,35 +8,35 @@ import (
 )
 
 type PlaceOrderParams struct {
-	Variety           string
-	Exchange          string
-	TradingSymbol     string
-	TransactionType   string
-	Quantity          int
-	Product           string
-	OrderType         string
-	Price             float64
-	TriggerPrice      float64
-	DisclosedQuantity int
-	Validity          string
-	ValidityTTL       int
-	IcebergLegs       int
-	IcebergQuantity   int
-	AuctionNumber     string
-	MarketProtection  int
-	AutoSlice         bool
-	Tag               string
+	Variety           string  // Example: VarietyRegular, VarietyAMO, VarietyIceberg.
+	Exchange          string  // Example: ExchangeNSE, ExchangeNFO.
+	TradingSymbol     string  // Example: "INFY", "NIFTY26JUN24200CE".
+	TransactionType   string  // Example: TransactionBuy, TransactionSell.
+	Quantity          int     // Example: 1.
+	Product           string  // Example: ProductMIS, ProductCNC, ProductNRML.
+	OrderType         string  // Example: OrderTypeMarket, OrderTypeLimit, OrderTypeSL, OrderTypeSLM.
+	Price             float64 // Example: 1525.50 for LIMIT/SL orders.
+	TriggerPrice      float64 // Example: 1520.00 for SL/SL-M orders.
+	DisclosedQuantity int     // Optional disclosed quantity.
+	Validity          string  // Example: ValidityDay, ValidityIOC, ValidityTTL.
+	ValidityTTL       int     // Minutes, only for ValidityTTL.
+	IcebergLegs       int     // Example: 2 for VarietyIceberg.
+	IcebergQuantity   int     // Quantity per iceberg leg.
+	AuctionNumber     string  // Required for auction orders when applicable.
+	MarketProtection  int     // Percentage, supported for market orders.
+	AutoSlice         bool    // true enables autoslicing for large orders.
+	Tag               string  // Optional custom tag for tracking.
 }
 
 type ModifyOrderParams struct {
-	Quantity          int
-	Price             float64
-	OrderType         string
-	TriggerPrice      float64
-	DisclosedQuantity int
-	Validity          string
-	ValidityTTL       int
-	MarketProtection  int
+	Quantity          int     // Example: 2.
+	Price             float64 // Example: 1526.00 for LIMIT/SL orders.
+	OrderType         string  // Example: OrderTypeLimit, OrderTypeSL, OrderTypeSLM.
+	TriggerPrice      float64 // Example: 1520.00 for SL/SL-M orders.
+	DisclosedQuantity int     // Optional disclosed quantity.
+	Validity          string  // Example: ValidityDay, ValidityIOC, ValidityTTL.
+	ValidityTTL       int     // Minutes, only for ValidityTTL.
+	MarketProtection  int     // Percentage, supported for market orders.
 }
 
 type OrderResponse struct {
@@ -102,6 +102,8 @@ func (c *Client) PlaceOrder(ctx context.Context, p PlaceOrderParams) (*OrderResp
 	return &out, nil
 }
 
+// ModifyOrder updates an open order.
+// Example: client.ModifyOrder(ctx, VarietyRegular, orderID, ModifyOrderParams{Quantity: 2, Price: 1526, OrderType: OrderTypeLimit})
 func (c *Client) ModifyOrder(ctx context.Context, variety, orderID string, p ModifyOrderParams) (*OrderResponse, error) {
 	if variety == "" {
 		variety = VarietyRegular
@@ -113,6 +115,8 @@ func (c *Client) ModifyOrder(ctx context.Context, variety, orderID string, p Mod
 	return &out, nil
 }
 
+// CancelOrder cancels an open order.
+// Example: client.CancelOrder(ctx, VarietyRegular, orderID)
 func (c *Client) CancelOrder(ctx context.Context, variety, orderID string) (*OrderResponse, error) {
 	if variety == "" {
 		variety = VarietyRegular
