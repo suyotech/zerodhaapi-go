@@ -6,14 +6,14 @@ Packages:
 
 - `kiteconnect`: REST API client.
 - `ticker`: WebSocket ticker client and binary tick parser.
-- `instruments`: instrument CSV cache and lookup helpers.
+- `instruments`: full instrument dump cache and lookup helpers.
 
 ## Structure
 
 ```text
 kiteconnect/    REST API client
 ticker/         WebSocket ticker client and tick parser
-instruments/    instrument dump cache and lookup
+instruments/    full instrument dump cache and lookup
 examples/       small runnable examples
 ```
 
@@ -74,20 +74,29 @@ Available ticker modes are `ticker.ModeLTP`, `ticker.ModeQuote`, and `ticker.Mod
 ## Instruments
 
 ```go
-store, err := instruments.LoadOrDownload(ctx, instruments.CacheConfig{
-    Client:   client,
-    FilePath: "data/instruments.csv",
-})
+err := instruments.CheckDownload(ctx, client, "data/instruments.csv")
+allInstruments, err := instruments.Load()
 
 name := "NIFTY"
 exchange := "NFO"
-expiries := instruments.ExpiryDates(store, instruments.FindRequest{
+expiries, err := instruments.ExpiryDates(instruments.FindRequest{
     Name:     &name,
     Exchange: &exchange,
-})
-strikes := instruments.OptionStrikes(store, instruments.FindRequest{
+}, allInstruments)
+strikes, err := instruments.OptionStrikes(instruments.FindRequest{
     Name:     &name,
     Exchange: &exchange,
     Expiry:   &expiries[0],
-})
+}, allInstruments)
+
+// If you do not pass allInstruments, Find/ExpiryDates/OptionStrikes load the dump internally.
+found, err := instruments.Find(instruments.FindRequest{Name: &name})
 ```
+
+Instrument type constants: `InstrumentTypeEQ`, `InstrumentTypeFUT`, `InstrumentTypeCE`, `InstrumentTypePE`.
+
+Option type constants: `OptionTypeCE`, `OptionTypePE`.
+
+Exchange constants: `ExchangeNSE`, `ExchangeBSE`, `ExchangeNFO`, `ExchangeBFO`, `ExchangeCDS`, `ExchangeBCD`, `ExchangeMCX`.
+
+Segment constants: `SegmentNSE`, `SegmentBSE`, `SegmentIndices`, `SegmentNFOFUT`, `SegmentNFOOPT`, `SegmentBFOFUT`, `SegmentBFOOPT`, `SegmentCDSFUT`, `SegmentCDSOPT`, `SegmentBCDFUT`, `SegmentBCDOPT`, `SegmentMCXFUT`, `SegmentMCXOPT`.

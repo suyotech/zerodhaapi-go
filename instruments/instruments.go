@@ -15,19 +15,51 @@ import (
 	"zerodhaapi-go/kiteconnect"
 )
 
-type CacheConfig struct {
-	Client       *kiteconnect.Client
-	FilePath     string
-	Exchange     string
-	RefreshHour  int
-	RefreshMin   int
-	LocationName string
-	Now          func() time.Time
-}
+const (
+	refreshHour   = 8
+	refreshMinute = 30
+	locationName  = "Asia/Kolkata"
+)
 
-type Store struct {
-	items []Instrument
-}
+const (
+	InstrumentTypeEQ  = "EQ"
+	InstrumentTypeFUT = "FUT"
+	InstrumentTypeCE  = "CE"
+	InstrumentTypePE  = "PE"
+)
+
+const (
+	OptionTypeCE = InstrumentTypeCE
+	OptionTypePE = InstrumentTypePE
+)
+
+const (
+	ExchangeNSE = "NSE"
+	ExchangeBSE = "BSE"
+	ExchangeNFO = "NFO"
+	ExchangeBFO = "BFO"
+	ExchangeCDS = "CDS"
+	ExchangeBCD = "BCD"
+	ExchangeMCX = "MCX"
+)
+
+const (
+	SegmentNSE     = "NSE"
+	SegmentBSE     = "BSE"
+	SegmentIndices = "INDICES"
+	SegmentNFOFUT  = "NFO-FUT"
+	SegmentNFOOPT  = "NFO-OPT"
+	SegmentBFOFUT  = "BFO-FUT"
+	SegmentBFOOPT  = "BFO-OPT"
+	SegmentCDSFUT  = "CDS-FUT"
+	SegmentCDSOPT  = "CDS-OPT"
+	SegmentBCDFUT  = "BCD-FUT"
+	SegmentBCDOPT  = "BCD-OPT"
+	SegmentMCXFUT  = "MCX-FUT"
+	SegmentMCXOPT  = "MCX-OPT"
+)
+
+var instrumentFilePath = "data/instruments.csv"
 
 type Instrument struct {
 	InstrumentToken uint32
@@ -56,34 +88,57 @@ type FindRequest struct {
 	Exchange        *string
 }
 
-func LoadOrDownload(ctx context.Context, cfg CacheConfig) (*Store, error) {
-	if cfg.FilePath == "" {
-		return nil, errors.New("instruments: file path is required")
+func CheckDownload(ctx context.Context, client *kiteconnect.Client, filePath string) error {
+	if strings.TrimSpace(filePath) != "" {
+		instrumentFilePath = filePath
 	}
-	if needsDownload(cfg) {
-		if cfg.Client == nil {
-			return nil, errors.New("instruments: client is required to download")
+	info, err := os.Stat(instrumentFilePath)
+	download := os.IsNotExist(err)
+	if err != nil && !download {
+		return nil
+	}
+	if !download {
+		now := time.Now()
+		loc, err := time.LoadLocation(locationName)
+		if err != nil {
+			loc = time.Local
 		}
-		body, err := cfg.Client.Instruments(ctx, cfg.Exchange)
+		now = now.In(loc)
+		refreshAt := time.Date(now.Year(), now.Month(), now.Day(), refreshHour, refreshMinute, 0, 0, loc)
+		download = !now.Before(refreshAt) && info.ModTime().In(loc).Before(refreshAt)
+	}
+	if !download {
+		return nil
+	}
+	if client == nil {
+		return errors.New("instruments: client is required to download")
+	}
+	body, err := client.Instruments(ctx, "")
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(instrumentFilePath), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(instrumentFilePath, body, 0o644)
+}
+
+func Load() ([]Instrument, error) {
+	return load(instrumentFilePath)
+}
+
+func Find(req FindRequest, instruments ...[]Instrument) ([]Instrument, error) {
+	items := firstInstruments(instruments)
+	if items == nil {
+		loaded, err := Load()
 		if err != nil {
 			return nil, err
 		}
-		if err := os.MkdirAll(filepath.Dir(cfg.FilePath), 0o755); err != nil {
-			return nil, err
-		}
-		if err := os.WriteFile(cfg.FilePath, body, 0o644); err != nil {
-			return nil, err
-		}
+		items = loaded
 	}
-	return load(cfg.FilePath)
-}
 
-func Find(store *Store, req FindRequest) []Instrument {
-	if store == nil {
-		return nil
-	}
 	out := make([]Instrument, 0)
-	for _, inst := range store.items {
+	for _, inst := range items {
 		if matches(inst, req) {
 			out = append(out, inst)
 		}
@@ -94,12 +149,16 @@ func Find(store *Store, req FindRequest) []Instrument {
 		}
 		return out[i].Exchange < out[j].Exchange
 	})
-	return out
+	return out, nil
 }
 
-func ExpiryDates(store *Store, req FindRequest) []time.Time {
+func ExpiryDates(req FindRequest, instruments ...[]Instrument) ([]time.Time, error) {
+	items, err := Find(req, instruments...)
+	if err != nil {
+		return nil, err
+	}
 	seen := map[time.Time]bool{}
-	for _, inst := range Find(store, req) {
+	for _, inst := range items {
 		if !inst.Expiry.IsZero() {
 			seen[inst.Expiry] = true
 		}
@@ -109,13 +168,17 @@ func ExpiryDates(store *Store, req FindRequest) []time.Time {
 		out = append(out, expiry)
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Before(out[j]) })
-	return out
+	return out, nil
 }
 
-func OptionStrikes(store *Store, req FindRequest) []float64 {
+func OptionStrikes(req FindRequest, instruments ...[]Instrument) ([]float64, error) {
+	items, err := Find(req, instruments...)
+	if err != nil {
+		return nil, err
+	}
 	seen := map[float64]bool{}
-	for _, inst := range Find(store, req) {
-		if inst.InstrumentType == "CE" || inst.InstrumentType == "PE" {
+	for _, inst := range items {
+		if inst.InstrumentType == InstrumentTypeCE || inst.InstrumentType == InstrumentTypePE {
 			seen[inst.Strike] = true
 		}
 	}
@@ -124,43 +187,21 @@ func OptionStrikes(store *Store, req FindRequest) []float64 {
 		out = append(out, strike)
 	}
 	sort.Float64s(out)
-	return out
+	return out, nil
 }
 
-func needsDownload(cfg CacheConfig) bool {
-	info, err := os.Stat(cfg.FilePath)
-	if os.IsNotExist(err) {
-		return true
+func firstInstruments(instruments [][]Instrument) []Instrument {
+	if len(instruments) == 0 {
+		return nil
 	}
-	if err != nil {
-		return false
+	items := instruments[0]
+	if items == nil {
+		return nil
 	}
-	now := time.Now()
-	if cfg.Now != nil {
-		now = cfg.Now()
-	}
-	locName := cfg.LocationName
-	if locName == "" {
-		locName = "Asia/Kolkata"
-	}
-	loc, err := time.LoadLocation(locName)
-	if err != nil {
-		loc = time.Local
-	}
-	hour := cfg.RefreshHour
-	if hour == 0 {
-		hour = 8
-	}
-	min := cfg.RefreshMin
-	if min == 0 {
-		min = 30
-	}
-	now = now.In(loc)
-	refreshAt := time.Date(now.Year(), now.Month(), now.Day(), hour, min, 0, 0, loc)
-	return !now.Before(refreshAt) && info.ModTime().In(loc).Before(refreshAt)
+	return items
 }
 
-func load(path string) (*Store, error) {
+func load(path string) ([]Instrument, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -178,7 +219,7 @@ func load(path string) (*Store, error) {
 		index[strings.TrimSpace(column)] = i
 	}
 
-	store := &Store{}
+	items := make([]Instrument, 0)
 	for {
 		row, err := reader.Read()
 		if err == io.EOF {
@@ -187,9 +228,9 @@ func load(path string) (*Store, error) {
 		if err != nil {
 			return nil, err
 		}
-		store.items = append(store.items, instrument(row, index))
+		items = append(items, instrument(row, index))
 	}
-	return store, nil
+	return items, nil
 }
 
 func instrument(row []string, index map[string]int) Instrument {

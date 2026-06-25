@@ -13,10 +13,10 @@ func main() {
 	client := kiteconnect.NewClient("api_key", "api_secret")
 	client.SetAccessToken("access_token")
 
-	store, err := instruments.LoadOrDownload(context.Background(), instruments.CacheConfig{
-		Client:   client,
-		FilePath: "data/instruments.csv",
-	})
+	if err := instruments.CheckDownload(context.Background(), client, "data/instruments.csv"); err != nil {
+		log.Fatal(err)
+	}
+	allInstruments, err := instruments.Load()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,19 +24,25 @@ func main() {
 	name := "NIFTY"
 	exchange := "NFO"
 
-	expiries := instruments.ExpiryDates(store, instruments.FindRequest{
+	expiries, err := instruments.ExpiryDates(instruments.FindRequest{
 		Name:     &name,
 		Exchange: &exchange,
-	})
+	}, allInstruments)
+	if err != nil {
+		log.Fatal(err)
+	}
 	if len(expiries) == 0 {
 		log.Fatal("no expiries found")
 	}
 
-	strikes := instruments.OptionStrikes(store, instruments.FindRequest{
+	strikes, err := instruments.OptionStrikes(instruments.FindRequest{
 		Name:     &name,
 		Exchange: &exchange,
 		Expiry:   &expiries[0],
-	})
+	}, allInstruments)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Println(expiries[0].Format("2006-01-02"), strikes)
 }

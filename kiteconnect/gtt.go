@@ -8,11 +8,6 @@ import (
 	"strconv"
 )
 
-const (
-	GTTTypeSingle = "single"
-	GTTTypeOCO    = "two-leg"
-)
-
 type GTTParams struct {
 	Type          string
 	Exchange      string
