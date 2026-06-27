@@ -7,7 +7,7 @@ import (
 	"os"
 	"os/signal"
 
-	"zerodhaapi-go/ticker"
+	"github.com/suyotech/zerodhaapi-go/ticker"
 )
 
 func main() {

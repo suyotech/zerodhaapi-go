@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"zerodhaapi-go/instruments"
-	"zerodhaapi-go/kiteconnect"
+	"github.com/suyotech/zerodhaapi-go/instruments"
+	"github.com/suyotech/zerodhaapi-go/kiteconnect"
 )
 
 func main() {

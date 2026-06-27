@@ -2,6 +2,12 @@
 
 Small Go SDK for Zerodha Kite Connect v3.
 
+## Install
+
+```sh
+go get github.com/suyotech/zerodhaapi-go
+```
+
 Packages:
 
 - `kiteconnect`: REST API client.

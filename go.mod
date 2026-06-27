@@ -1,4 +1,4 @@
-module zerodhaapi-go
+module github.com/suyotech/zerodhaapi-go
 
 go 1.24
 

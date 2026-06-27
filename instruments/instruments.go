@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"zerodhaapi-go/kiteconnect"
+	"github.com/suyotech/zerodhaapi-go/kiteconnect"
 )
 
 const (

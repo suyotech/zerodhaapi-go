@@ -6,7 +6,7 @@ import (
 	"log"
 	"time"
 
-	"zerodhaapi-go/kiteconnect"
+	"github.com/suyotech/zerodhaapi-go/kiteconnect"
 )
 
 func main() {

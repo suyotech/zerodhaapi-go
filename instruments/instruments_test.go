@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"zerodhaapi-go/kiteconnect"
+	"github.com/suyotech/zerodhaapi-go/kiteconnect"
 )
 
 func TestInstrumentConstants(t *testing.T) {
